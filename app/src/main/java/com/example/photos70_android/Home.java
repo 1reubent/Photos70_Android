@@ -1,6 +1,7 @@
 package com.example.photos70_android;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -170,9 +171,49 @@ public class Home extends AppCompatActivity {
             builder.show();
         });
 
+        /*TODO: Set up the Rename Album button logic*/
+
+        /*Set up the Open Album button logic*/
+        openAlbumButton.setOnClickListener(v -> {
+            // Show a dialog to get the album name
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Open Album");
+
+            // Dropdown (Spinner) for album names
+            final Spinner albumDropdown = new Spinner(this);
+            ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item,
+                albums.stream().map(Album::getName).toArray(String[]::new));
+            albumDropdown.setAdapter(adapter);
+            builder.setView(albumDropdown);
+
+            // Set up dialog buttons
+            builder.setPositiveButton("Open", (dialog, which) -> {
+                String albumName = albumDropdown.getSelectedItem().toString().trim();
+
+                // Open the selected album (start a new activity)
+                openAlbum(albumName);
+            });
+            builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
+
+            builder.show();
+
+        });
+
+        /*TODO: Set up the Search Photos button logic*/
 
     }
 
+    public static final String ALBUM_NAME = "album_name";
+    private void openAlbum(String albumName) {
+        // Create an intent to start the AlbumActivity
+        Intent intent = new Intent(this, AlbumViewActivity.class);
+
+        // Pass the album name as an extra
+        intent.putExtra(ALBUM_NAME, albumName);
+
+        // Start the activity
+        startActivity(intent);
+    }
     public Album getAlbum(String name) {
         for (Album album : albums) {
             if (album.getName().equalsIgnoreCase(name)) {
@@ -233,8 +274,7 @@ public class Home extends AppCompatActivity {
             oos.close();
             fos.close();
         } catch (IOException e) {
-            e.printStackTrace();
-//            TODO: change to dialog
+            showError("Error saving albums: " + e.getMessage());
         }
     }
     public ArrayList<Album> loadAlbums(Context context) {
@@ -246,17 +286,7 @@ public class Home extends AppCompatActivity {
             ois.close();
             fis.close();
         } catch (IOException | ClassNotFoundException e) {
-            // No saved data yet or error loading
-            e.printStackTrace();
-//            TODO: change to dialog
-//            // create file if it doesn't exist
-//            try {
-//                FileOutputStream fos = context.openFileOutput("albums.dat", Context.MODE_PRIVATE);
-//                fos.close(); // Create the file if it doesn't exist
-//            } catch (IOException ioException) {
-//                ioException.printStackTrace();
-//            }
-//            e.printStackTrace();
+            showError("Error saving albums: " + e.getMessage());
         }
         return albums;
     }
