@@ -19,25 +19,16 @@ tools:context=".AlbumViewActivity">
     android:layout_marginBottom="10dp"
     android:title="Photos in: "
     android:titleTextColor="@color/white"/>
-<!--    >
 
-    <Button
-        android:id="@+id/backButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Back" />
-
+    <!-- Add a TextView to display the number of photos in the album -->
     <TextView
-        android:id="@+id/albumNameLabel"
-        android:layout_width="wrap_content"
+        android:id="@+id/photoCountLabel"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Photos in"
+        android:padding="10dp"
+        android:text="Number of photos: 0"
         android:textAppearance="?android:attr/textAppearanceMedium"
-        android:layout_marginStart="10dp"
-        android:layout_gravity="center_vertical" />
-</androidx.appcompat.widget.Toolbar>
--->
-
+        android:layout_marginBottom="10dp" />
 <!-- Center Area: Photo List and Action Buttons -->
 <LinearLayout
     android:layout_width="match_parent"
@@ -106,25 +97,12 @@ tools:context=".AlbumViewActivity">
                 android:layout_marginTop="10dp" />
 
             <Button
-                android:id="@+id/copyPhotoButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Copy Photo"
-                android:layout_marginTop="10dp" />
-
-            <Button
                 android:id="@+id/movePhotoButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Move Photo"
                 android:layout_marginTop="10dp" />
 
-            <Button
-                android:id="@+id/slideshowButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Slideshow"
-                android:layout_marginTop="10dp" />
         </LinearLayout>
     </ScrollView>
 </LinearLayout>

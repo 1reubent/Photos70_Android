@@ -1,6 +1,11 @@
 package com.example.photos70_android;
 
-import android.content.Context;
+import static com.example.photos70_android.AlbumsManager.addAlbum;
+import static com.example.photos70_android.AlbumsManager.loadAlbums;
+import static com.example.photos70_android.AlbumsManager.saveAlbums;
+import static com.example.photos70_android.AlbumsManager.removeAlbum;
+
+
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.ArrayAdapter;
@@ -17,11 +22,6 @@ import androidx.appcompat.widget.Toolbar;
 
 import com.example.photos70_android.model.Album;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 
 public class Home extends AppCompatActivity {
@@ -86,11 +86,11 @@ public class Home extends AppCompatActivity {
         myToolbar.setTitle("My Albums");
         setSupportActionBar(myToolbar);
 
-        /*LOAD ALBUMS*/
+        /*LOAD ALBUMS AND INITIALIZE PERSISTENCE UTILITY*/
         albums = loadAlbums(this);
 
         /*POPULATE LISTVIEW*/
-        saveAndUpdateAlbumListView();
+        populateAlbumList();
 
         /*Set up the Create Album button logic*/
         createAlbumButton.setOnClickListener(v -> {
@@ -114,13 +114,13 @@ public class Home extends AppCompatActivity {
                 }
 
                 // Create and add the new album
-                if (!addAlbum(new Album(albumName))) {
+                if (!addAlbum(this, new Album(albumName))) {
                     showError("An album with this name already exists.");
                     return;
                 }
 
                 // Save albums and update UI
-                saveAndUpdateAlbumListView();
+                populateAlbumList();
 
                 //update status label
                 statusLabel.setText("Album created: " + albumName);
@@ -154,7 +154,7 @@ public class Home extends AppCompatActivity {
                 //TODO: ask for confirmation?
 
                 //remove the album and save
-                if(!removeAlbum(albumName)){
+                if(!removeAlbum(this, albumName)){
                     showError("Album not found.");
                     return;
                 }
@@ -163,7 +163,7 @@ public class Home extends AppCompatActivity {
                 statusLabel.setText("Album deleted: " + albumName);
 
                 // Save albums and update UI
-                saveAndUpdateAlbumListView();
+                populateAlbumList();
             });
 
             builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
@@ -208,47 +208,14 @@ public class Home extends AppCompatActivity {
         // Create an intent to start the AlbumActivity
         Intent intent = new Intent(this, AlbumViewActivity.class);
 
-        // Pass the album name as an extra
+        // Pass the album as an extra
         intent.putExtra(ALBUM_NAME, albumName);
 
         // Start the activity
         startActivity(intent);
     }
-    public Album getAlbum(String name) {
-        for (Album album : albums) {
-            if (album.getName().equalsIgnoreCase(name)) {
-                return album;
-            }
-        }
-        return null; // Album not found
-    }
-
-    public boolean addAlbum(Album album) {
-        if (albums.contains(album)) {
-            return false; // Album already exists
-        }
-        albums.add(album);
-        return true;
-    }
-    public boolean removeAlbum(Album album) {
-        if (!albums.contains(album)) {
-            return false; // Album does not exist
-        }
-        albums.remove(album);
-        return true;
-    }
-    public boolean removeAlbum(String albumName){
-        Album album = albums.stream().filter((alb -> alb.getName().equals(albumName))).findAny().orElse(null);
-        if(album == null){
-            return false;
-        }
-        albums.remove(album);
-        return true;
-    }
-
-    public void saveAndUpdateAlbumListView() {
+    public void populateAlbumList() {
         // Save the albums to internal storage
-        saveAlbums(albums, this);
         listView = findViewById(R.id.albumListView);
         ArrayAdapter<Album> albumAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, albums);
         //TODO: change to custom adapter; use new layout for album item
@@ -257,39 +224,23 @@ public class Home extends AppCompatActivity {
     private void showError(String message) {
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
     }
-    public void saveAlbums(ArrayList<Album> albums, Context context) {
-        try {
-            FileOutputStream fos = context.openFileOutput("albums.dat", Context.MODE_PRIVATE);
-            /*
-            * The file `albums.dat` is stored in the app's internal storage directory,
-            * which is private to the app. Specifically, it is located in the directory
-            * returned by `Context.getFilesDir()` on the device. This directory is typically
-            * something like:
-            * `/data/data/com.example.photos70_android/files/albums.dat`
-            * You can access it programmatically using `context.getFileStreamPath("albums.dat")`.
-               * in Android Studio, you can view this file by navigating to the Device File Explorer
-            * */
-            ObjectOutputStream oos = new ObjectOutputStream(fos);
-            oos.writeObject(albums);
-            oos.close();
-            fos.close();
-        } catch (IOException e) {
-            showError("Error saving albums: " + e.getMessage());
-        }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Reload the albums when returning to this activity
+        albums = loadAlbums(this);
+        System.out.println("Reloaded albums from Home.java: " + albums);
+        populateAlbumList();
     }
-    public ArrayList<Album> loadAlbums(Context context) {
-        ArrayList<Album> albums = new ArrayList<>();
-        try {
-            FileInputStream fis = context.openFileInput("albums.dat");
-            ObjectInputStream ois = new ObjectInputStream(fis);
-            albums = (ArrayList<Album>) ois.readObject();
-            ois.close();
-            fis.close();
-        } catch (IOException | ClassNotFoundException e) {
-            showError("Error saving albums: " + e.getMessage());
-        }
-        return albums;
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // Save the albums when this activity is destroyed
+//        // reload and save
+        saveAlbums(this);
     }
+
 
 //
 }
