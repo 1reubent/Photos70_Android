@@ -1,5 +1,9 @@
 package com.example.photos70_android;
 
+
+import android.database.Cursor;
+import android.provider.MediaStore;
+
 import static com.example.photos70_android.AlbumsManager.getAlbum;
 import static com.example.photos70_android.AlbumsManager.getCurrentAlbums;
 import static com.example.photos70_android.AlbumsManager.saveAlbumChanges;
@@ -41,6 +45,7 @@ public class AlbumViewActivity extends AppCompatActivity {
 
 
     static final int REQUEST_IMAGE_GET = 1;
+
 
 
     @Override
@@ -103,7 +108,9 @@ public class AlbumViewActivity extends AppCompatActivity {
         // You can also update the statusLabel to show the number of photos in the album
 
         photoListView = findViewById(R.id.photoListView);
-        ArrayAdapter<Photo> photoListAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, this_album.getPhotos());
+//        ArrayAdapter<Photo> photoListAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, this_album.getPhotos());
+        PhotoAdapter photoListAdapter = new PhotoAdapter(this, this_album.getPhotos());
+
         //TODO: change to custom adapter; use new layout for album item
         photoListView.setAdapter(photoListAdapter);
         photoCountLabel.setText("Number of photos: " + this_album.getPhotos().size());
@@ -117,9 +124,11 @@ public class AlbumViewActivity extends AppCompatActivity {
             // Get the selected photo's URI
             Uri selectedImageUri = data.getData();
 
-            if (selectedImageUri != null) {
+            //convert content URI to file path on the device
+            String filePath = getRealPathFromURI(selectedImageUri);
+            if (filePath != null) {
                 // Add the photo to the album
-                Photo newPhoto = new Photo(selectedImageUri.toString()); // Assuming Photo has a constructor that accepts a URI string
+                Photo newPhoto = new Photo(filePath); // Assuming Photo has a constructor that accepts a URI string
                 this_album.addPhoto(newPhoto);
 
                 //save the album changes and update the UI
@@ -130,6 +139,16 @@ public class AlbumViewActivity extends AppCompatActivity {
                 showError("Failed to get the selected photo.");
             }
         }
+    }
+    private String getRealPathFromURI(Uri contentUri) {
+        String[] projection = {MediaStore.Images.Media.DATA};
+        try (Cursor cursor = getContentResolver().query(contentUri, projection, null, null, null)) {
+            if (cursor != null && cursor.moveToFirst()) {
+                int columnIndex = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+                return cursor.getString(columnIndex);
+            }
+        }
+        return null;
     }
     private void showError(String message) {
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
@@ -151,4 +170,6 @@ public class AlbumViewActivity extends AppCompatActivity {
         System.out.println("New updated album list: " + getCurrentAlbums(this));
             //update the state of this album in the global list of albums
     }
+
+
 }
