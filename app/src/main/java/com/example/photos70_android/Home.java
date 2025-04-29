@@ -96,7 +96,7 @@ public class Home extends AppCompatActivity {
 
         /*LOAD ALBUMS AND INITIALIZE PERSISTENCE UTILITY*/
         albums = loadAlbums(this);
-
+        System.out.println("Loaded albums from Home.java creation: " + albums);
         /*POPULATE LISTVIEW*/
         populateAlbumList();
 
@@ -242,8 +242,8 @@ public class Home extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         // Reload the albums when returning to this activity
-        albums = loadAlbums(this);
-        System.out.println("Reloaded albums from Home.java: " + albums);
+//        albums = loadAlbums(this);
+//        System.out.println("Reloaded albums from Home.java: " + albums);
         populateAlbumList();
     }
     @Override
@@ -252,6 +252,7 @@ public class Home extends AppCompatActivity {
         // Save the albums when this activity is destroyed
 //        // reload and save
         saveAlbums(this);
+        System.out.println("Saved albums from Home.java destruction: " + albums);
     }
 
     private static final int REQUEST_PERMISSION_READ_MEDIA_IMAGES = 100;

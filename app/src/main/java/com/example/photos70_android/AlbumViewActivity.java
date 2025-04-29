@@ -17,12 +17,14 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 import com.example.photos70_android.model.Album;
 import com.example.photos70_android.model.Photo;
 
+import java.io.File;
 import java.util.Objects;
 
 public class AlbumViewActivity extends AppCompatActivity {
@@ -45,7 +47,6 @@ public class AlbumViewActivity extends AppCompatActivity {
 
 
     static final int REQUEST_IMAGE_GET = 1;
-
 
 
     @Override
@@ -91,12 +92,13 @@ public class AlbumViewActivity extends AppCompatActivity {
 
 
         /*TODO: add listeners to all the buttons:
-        *  - display photo activity should implement the slideshow feature
-        *  - make it so that you select a photo FIRST and then click the button*/
+         *  - display photo activity should implement the slideshow feature
+         *  - make it so that you select a photo FIRST and then click the button*/
 
         addPhotoButton.setOnClickListener(view -> {
             // Create an intent to open the gallery
-            Intent intent = new Intent(Intent.ACTION_PICK);
+            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
             intent.setType("image/*"); // Only show images
             startActivityForResult(intent, REQUEST_IMAGE_GET); // Request code 1
         });
@@ -115,41 +117,86 @@ public class AlbumViewActivity extends AppCompatActivity {
         photoListView.setAdapter(photoListAdapter);
         photoCountLabel.setText("Number of photos: " + this_album.getPhotos().size());
     }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        //"Add Photo" result:
-        if (requestCode == REQUEST_IMAGE_GET && resultCode == RESULT_OK && data != null) {
-            // Get the selected photo's URI
-            Uri selectedImageUri = data.getData();
+        if (requestCode == REQUEST_IMAGE_GET) {
+            System.out.println("Result Code: " + resultCode);
+            System.out.println("Data: " + data);
 
-            //convert content URI to file path on the device
-            String filePath = getRealPathFromURI(selectedImageUri);
-            if (filePath != null) {
-                // Add the photo to the album
-                Photo newPhoto = new Photo(filePath); // Assuming Photo has a constructor that accepts a URI string
-                this_album.addPhoto(newPhoto);
-
-                //save the album changes and update the UI
-                saveAlbumChanges(this, this_album);
-                populatePhotoList();
-                statusLabel.setText("Photo added to album: " + this_album.getName());
+            if (resultCode == RESULT_OK && data != null) {
+                Uri selectedImageUri = data.getData();
+                System.out.println("URI: " + selectedImageUri);
+                System.out.println("scheme: " + selectedImageUri.getScheme());
+                if (selectedImageUri != null) {
+                    String filePath = getRealPathFromURI(selectedImageUri);
+                    System.out.println("filePath: " + filePath);
+                    if (filePath != null) {
+                        Photo newPhoto = new Photo(filePath);
+                        this_album.addPhoto(newPhoto);
+                        saveAlbumChanges(this, this_album);
+                        System.out.println("New updated album list: " + getCurrentAlbums(this));
+                        populatePhotoList();
+                        statusLabel.setText("Photo added to album: " + this_album.getName());
+                    } else {
+                        showError("Failed to get the selected photo.");
+                    }
+                } else {
+                    showError("No photo was selected.");
+                }
             } else {
-                showError("Failed to get the selected photo.");
+                showError("Image selection failed or was canceled.");
             }
         }
     }
-    private String getRealPathFromURI(Uri contentUri) {
-        String[] projection = {MediaStore.Images.Media.DATA};
-        try (Cursor cursor = getContentResolver().query(contentUri, projection, null, null, null)) {
-            if (cursor != null && cursor.moveToFirst()) {
-                int columnIndex = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-                return cursor.getString(columnIndex);
+
+    private String getRealPathFromURI(Uri uri) {
+        try {
+            if ("content".equalsIgnoreCase(uri.getScheme())) {
+                try (Cursor cursor = getContentResolver().query(uri, null, null, null, null)) {
+                    if (cursor != null && cursor.moveToFirst()) {
+                        int columnIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DISPLAY_NAME);
+                        String fileName = cursor.getString(columnIndex);
+
+                        // create the new file (in the app's files directory) to copy the image to
+                        File file = createNewAppFile(fileName);
+
+                        // copy the image to the new file
+                        try (java.io.InputStream inputStream = getContentResolver().openInputStream(uri);
+                             java.io.OutputStream outputStream = new java.io.FileOutputStream(file)) {
+                            byte[] buffer = new byte[1024];
+                            int length;
+                            while ((length = inputStream.read(buffer)) > 0) {
+                                outputStream.write(buffer, 0, length);
+                            }
+                        }
+                        //return the path to the copied file
+                        return file.getAbsolutePath();
+                    }
+                }
+            } else if ("file".equalsIgnoreCase(uri.getScheme())) {
+                return uri.getPath();
             }
+        } catch (Exception e) {
+            showError("Failed to get the file path from URI: " + e.getMessage());
         }
         return null;
     }
+
+    @NonNull
+    private File createNewAppFile(String fileName) {
+        String sanitizedFileName = fileName.replaceAll("[^a-zA-Z0-9._()\\- &+@\\[\\]{}~!]", "_").replace(" ", "_");
+        if (sanitizedFileName.length() > 255) {
+            sanitizedFileName = sanitizedFileName.substring(0, 255);
+        }
+
+        //create the file in the app's storage on the device (data/user/0/com.example.photos70_android/files)
+        File file = new File(getFilesDir(), sanitizedFileName); // Use internal storage
+        return file;
+    }
+
     private void showError(String message) {
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
     }
@@ -161,14 +208,14 @@ public class AlbumViewActivity extends AppCompatActivity {
         this_album = getAlbum(this, album_name);
         populatePhotoList();
     }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
         // Save the albums when this activity is destroyed
 
-        saveAlbumChanges(this, this_album);
-        System.out.println("New updated album list: " + getCurrentAlbums(this));
-            //update the state of this album in the global list of albums
+//        saveAlbumChanges(this, this_album);
+        //update the state of this album in the global list of albums
     }
 
 

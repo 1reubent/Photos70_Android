@@ -131,6 +131,7 @@ public class AlbumsManager {
                 // run saveAlbums to create the file
                 current_albums = new ArrayList<>();
                 saveAlbums(context);
+                System.out.println("Creating new albums file: " + current_albums);
 //            } else {
 //                // Handle other IO exceptions
 //                Toast.makeText(context, "Error loading albums: " + e.getMessage(), Toast.LENGTH_LONG).show();
