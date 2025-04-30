@@ -85,20 +85,6 @@ tools:context=".AlbumViewActivity">
                 android:layout_marginTop="10dp" />
 
             <Button
-                android:id="@+id/addTagButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Add Tag"
-                android:layout_marginTop="10dp" />
-
-            <Button
-                android:id="@+id/removeTagButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Remove Tag"
-                android:layout_marginTop="10dp" />
-
-            <Button
                 android:id="@+id/movePhotoButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

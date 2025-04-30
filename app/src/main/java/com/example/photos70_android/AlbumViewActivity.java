@@ -33,8 +33,6 @@ public class AlbumViewActivity extends AppCompatActivity {
     private Button removePhotoButton;
     private Button captionPhotoButton;
     private Button displayPhotoButton;
-    private Button addTagButton;
-    private Button removeTagButton;
     private Button movePhotoButton;
 
     private TextView photoCountLabel;
@@ -88,8 +86,6 @@ public class AlbumViewActivity extends AppCompatActivity {
         removePhotoButton = findViewById(R.id.removePhotoButton);
         captionPhotoButton = findViewById(R.id.captionPhotoButton);
         displayPhotoButton = findViewById(R.id.displayPhotoButton);
-        addTagButton = findViewById(R.id.addTagButton);
-        removeTagButton = findViewById(R.id.removeTagButton);
         movePhotoButton = findViewById(R.id.movePhotoButton);
         statusLabel = findViewById(R.id.statusLabel);
         photoCountLabel = findViewById(R.id.photoCountLabel);

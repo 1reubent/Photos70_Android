@@ -107,7 +107,7 @@ public class Album implements Serializable {
 //   * @param tag the tag to filter photos by
 //   * @return a set of photos with the specified tag
 //   */
-//  public Set<Photo> getPhotosByTag(Tag tag) {
+//  public Set<Photo> getPhotosByTag() {
 //    Set<Photo> taggedPhotos = new HashSet<>();
 //    for (Photo photo : photos) {
 //      if (photo.hasTag(tag)) {

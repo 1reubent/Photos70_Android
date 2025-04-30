@@ -136,6 +136,9 @@ public class DisplayPhotoActivity extends AppCompatActivity {
     }
 
     private void updateTagsDisplay() {
+        //save updated photo to the album
+        AlbumsManager.saveAlbumChanges(this, this_album);
+
         // Assuming Photo has a method to get tags as a String
         Map<String, Set<String>> tags = currentPhoto.getAllTags();
         //print tags
