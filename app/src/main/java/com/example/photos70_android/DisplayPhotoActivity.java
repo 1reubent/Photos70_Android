@@ -7,12 +7,9 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
 import static com.example.photos70_android.AlbumsManager.getAlbum;
 
@@ -20,7 +17,7 @@ import static com.example.photos70_android.AlbumsManager.getAlbum;
 import com.example.photos70_android.model.Album;
 import com.example.photos70_android.model.Photo;
 
-import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -62,10 +59,10 @@ public class DisplayPhotoActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.my_toolbar);
         toolbar.setTitle("Display Photo");
         setSupportActionBar(toolbar);
-        // Enable the Up button
+        // Enable the Back button
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
 
-        /*GET ALBUM AND PHOTO*/
+        /*GET ALBUM AND STARTING PHOTO*/
         // Get the album name passed from the previous activity
         String albumName = getIntent().getStringExtra(Home.ALBUM_NAME);
         String photoPath = getIntent().getStringExtra(Home.PHOTO_PATH);
@@ -82,6 +79,34 @@ public class DisplayPhotoActivity extends AppCompatActivity {
         /*DISPLAY PHOTO*/
         displayPhoto();
 
+        /*BUTTON ACTIONS*/
+
+        //prev photo button:
+        prevPhotoButton.setOnClickListener(v -> {
+            if (currentPhotoIndex > 0) {
+                currentPhotoIndex--;
+                displayPhoto();
+            } else {
+                showMessage("No previous photo");
+            }
+        });
+        //next photo button:
+        nextPhotoButton.setOnClickListener(v -> {
+            if (currentPhotoIndex < photos.size() - 1) {
+                currentPhotoIndex++;
+                displayPhoto();
+            } else {
+                showMessage("No next photo");
+            }
+        });
+
+        //add tag button:
+        addTagButton.setOnClickListener(v -> showAddTagDialog());
+
+        //delete tag button:
+        deleteTagButton.setOnClickListener(v -> showDeleteTagDialog());
+
+
     }
 
     private void initializePhotos(String currentPhotoPath) {
@@ -91,7 +116,7 @@ public class DisplayPhotoActivity extends AppCompatActivity {
         //get photos from the album
         photos = this_album.getPhotos();
         if (photos == null || photos.isEmpty()) {
-            showError("No photos in this album");
+            showMessage("No photos in this album");
             finish(); //close the activity
             return;
         }
@@ -119,19 +144,93 @@ public class DisplayPhotoActivity extends AppCompatActivity {
         for (Map.Entry<String, Set<String>> entry : tags.entrySet()) {
             String tagType = entry.getKey();
             Set<String> tagValues = entry.getValue();
-            if(tagValues == null || tagValues.isEmpty()) {
+            if (tagValues == null || tagValues.isEmpty()) {
                 tagsString.append(tagType).append(": None\n");
-            }else {
+            } else {
                 tagsString.append(tagType).append(": ").append(tagValues.toString()).append("\n");
             }
         }
         tagsTextView.setText(tagsString.toString());
 
     }
-    //TODO: get photo from its index
 
-    //show error
-    private void showError(String message) {
+    private void showAddTagDialog() {
+        String[] tagTypes = {"Person", "Location"};
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Select Tag Type")
+                .setItems(tagTypes, (dialog, which) -> {
+                    String selectedTagType = tagTypes[which];
+                    showTagInputDialog(selectedTagType);
+                })
+                .show();
+    }
+
+    private void showTagInputDialog(String tagType) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Enter " + tagType + " Tag");
+        final android.widget.EditText input = new android.widget.EditText(this);
+        builder.setView(input);
+        builder.setPositiveButton("Add", (dialog, which) -> {
+            String tagValue = input.getText().toString().trim();
+            if (!tagValue.isEmpty()) {
+                //add tag based on type
+                if (tagType.equalsIgnoreCase("Person")) {
+                    currentPhoto.addPersonTag(tagValue); // Assuming Photo has a method to add tags
+                } else if (tagType.equalsIgnoreCase("Location")) {
+                    currentPhoto.addLocationTag(tagValue);
+                }
+                updateTagsDisplay();
+                showMessage("Tag added");
+            } else {
+                showMessage("Tag cannot be empty");
+            }
+        });
+        builder.setNegativeButton("Cancel", null);
+        builder.show();
+    }
+
+    private void showDeleteTagDialog() {
+        Map<String, Set<String>> tags = currentPhoto.getAllTags();
+        Set<String> peopleTags = tags.get("people");
+        Set<String> locationTags = tags.get("location");
+
+        if ((peopleTags == null || peopleTags.isEmpty()) && (locationTags == null || locationTags.isEmpty())) {
+            showMessage("No tags to delete");
+            return;
+        }
+
+        List<String> allTags = new ArrayList<>();
+        if (peopleTags != null) {
+            for (String tag : peopleTags) {
+                allTags.add("Person: " + tag);
+            }
+        }
+        if (locationTags != null) {
+            for (String tag : locationTags) {
+                allTags.add("Location: " + tag);
+            }
+        }
+
+        // Show a simple list dialog
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Select Tag to Delete");
+        builder.setItems(allTags.toArray(new String[0]), (dialog, which) -> {
+            String selectedTag = allTags.get(which);
+            if (selectedTag.startsWith("Person: ")) {
+                String personTag = selectedTag.substring(8); // Remove "Person: " prefix
+                currentPhoto.removePersonTag(personTag);
+                showMessage("Person tag deleted");
+            } else if (selectedTag.startsWith("Location: ")) {
+                currentPhoto.clearLocationTag();
+                showMessage("Location tag deleted");
+            }
+            updateTagsDisplay();
+        });
+        builder.show();
+    }
+
+    //show message
+    private void showMessage(String message) {
         // Show an error message to the user
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }

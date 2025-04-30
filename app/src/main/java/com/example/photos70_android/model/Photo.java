@@ -128,7 +128,7 @@ public class Photo implements Serializable {
     return locationTag;
   }
 
-  public void setLocationTag(String location) {
+  public void addLocationTag(String location) {
     this.locationTag = location.toLowerCase();
   }
 
