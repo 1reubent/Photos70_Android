@@ -62,15 +62,22 @@ public class AlbumViewActivity extends AppCompatActivity {
 
 
         /*GET ALBUM NAME FROM BUNDLE*/
-        Bundle bundle = getIntent().getExtras();
-        album_name = bundle.getString(Home.ALBUM_NAME);
+        //if coming back from DisplayPhotoActivity, savedInstanceState would not be null
+        if (savedInstanceState != null) {
+            album_name = savedInstanceState.getString(Home.ALBUM_NAME);
+        } else {
+            Bundle bundle = getIntent().getExtras();
+            if (bundle != null) {
+                album_name = bundle.getString(Home.ALBUM_NAME);
+            }
+        }
         this_album = getAlbum(this, album_name);
         //for debugging, print the album
 //        System.out.println("Album: " + this_album);
 
 
         /*INITIALIZE TOOLBAR*/
-        Toolbar myToolbar = findViewById(R.id.my_toolbar2);
+        Toolbar myToolbar = findViewById(R.id.my_toolbar);
         myToolbar.setTitle("Photos in " + album_name);
         setSupportActionBar(myToolbar);
         // Enable the Up button
@@ -116,6 +123,29 @@ public class AlbumViewActivity extends AppCompatActivity {
                 showError("Please select a photo to remove.");
             }
         });
+        //display photo
+
+        displayPhotoButton.setOnClickListener(view -> {
+            int selectedPosition = photoListView.getCheckedItemPosition();
+            if (selectedPosition != ListView.INVALID_POSITION) {
+                Photo selectedPhoto = (Photo) photoListView.getItemAtPosition(selectedPosition);
+                openPhoto(selectedPhoto.getPath());
+            } else {
+                showError("Please select a photo to display.");
+            }
+        });
+    }
+
+    private void openPhoto(String photoPath) {
+        // Create an intent to start the DisplayPhotoActivity
+        Intent intent = new Intent(this, DisplayPhotoActivity.class);
+
+        // Pass the photo path and album name as extras
+        intent.putExtra(Home.PHOTO_PATH, photoPath);
+        intent.putExtra(Home.ALBUM_NAME, album_name);
+
+        // Start the activity
+        startActivity(intent);
     }
 
     public void populatePhotoList() {
@@ -140,6 +170,7 @@ public class AlbumViewActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
+        //add photo:
         if (requestCode == REQUEST_IMAGE_GET) {
             System.out.println("Result Code: " + resultCode);
             System.out.println("Data: " + data);
@@ -153,6 +184,11 @@ public class AlbumViewActivity extends AppCompatActivity {
                     System.out.println("filePath: " + filePath);
                     if (filePath != null) {
                         Photo newPhoto = new Photo(filePath);
+                        //check if the photo already exists in the album
+                        if (this_album.hasPhoto(newPhoto)) {
+                            showError("Photo already exists in the album.");
+                            return;
+                        }
                         this_album.addPhoto(newPhoto);
                         saveAlbumChanges(this, this_album);
                         System.out.println("New updated album list: " + getCurrentAlbums(this));

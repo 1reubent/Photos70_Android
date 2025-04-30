@@ -49,6 +49,10 @@ public class Home extends AppCompatActivity {
     private TextView statusLabel;
 
 
+    public static final String ALBUM_NAME = "album_name";
+
+    public static final String PHOTO_PATH = "photo_path";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -194,7 +198,6 @@ public class Home extends AppCompatActivity {
 
     }
 
-    public static final String ALBUM_NAME = "album_name";
     private void openAlbum(String albumName) {
         // Create an intent to start the AlbumActivity
         Intent intent = new Intent(this, AlbumViewActivity.class);
