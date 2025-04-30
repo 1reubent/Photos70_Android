@@ -99,21 +99,23 @@ public class Album implements Serializable {
     return null;
   }
 
-  /**
-   * Retrieves all photos in the album that have the specified tag.
-   *
-   * @param tag the tag to filter photos by
-   * @return a set of photos with the specified tag
-   */
-  public Set<Photo> getPhotosByTag(Tag tag) {
-    Set<Photo> taggedPhotos = new HashSet<>();
-    for (Photo photo : photos) {
-      if (photo.hasTag(tag)) {
-        taggedPhotos.add(photo);
-      }
-    }
-    return taggedPhotos;
-  }
+//  TODO: get photos by people or location tags
+
+//  /**
+//   * Retrieves all photos in the album that have the specified tag.
+//   *
+//   * @param tag the tag to filter photos by
+//   * @return a set of photos with the specified tag
+//   */
+//  public Set<Photo> getPhotosByTag(Tag tag) {
+//    Set<Photo> taggedPhotos = new HashSet<>();
+//    for (Photo photo : photos) {
+//      if (photo.hasTag(tag)) {
+//        taggedPhotos.add(photo);
+//      }
+//    }
+//    return taggedPhotos;
+//  }
 
   /**
    * Retrieves all photos in the album that were taken within the specified date range.
@@ -208,7 +210,7 @@ public class Album implements Serializable {
    */
   @Override
   public String toString() {
-    return String.format("Name: %s | %d photos | Date Range: %s", name, getPhotoCount(), getDateRange());
+    return String.format("Name: %s\nPhotos: %d", name, getPhotoCount());
   }
 
   /**

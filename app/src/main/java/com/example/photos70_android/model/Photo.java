@@ -12,6 +12,7 @@ import java.util.*;
  * @author Reuben Thomas, Ryan Zaken
  */
 public class Photo implements Serializable {
+
   private static final long serialVersionUID = 1L;
 
   /**
@@ -30,9 +31,14 @@ public class Photo implements Serializable {
   private LocalDateTime dateTaken;
 
   /**
-   * The set of tags associated with the photo.
+   * The set of people tags associated with the photo.
    */
-  private Set<Tag> tags;
+  // Simplified fields for tags
+  private Set<String> peopleTags;
+  /**
+   * The location tag associated with the photo.
+   */
+  private String locationTag;
 
   /**
    * Constructs a Photo object with the specified file path.
@@ -43,7 +49,8 @@ public class Photo implements Serializable {
   public Photo(String filePath) {
     this.path = filePath;
     this.caption = "";
-    this.tags = new HashSet<>();
+    this.peopleTags = new HashSet<>();
+    this.locationTag = null;
     File file = new File(filePath);
     this.dateTaken = LocalDateTime.ofInstant(
             new Date(file.lastModified()).toInstant(), ZoneId.systemDefault()
@@ -95,75 +102,52 @@ public class Photo implements Serializable {
     return dateTaken;
   }
 
-  /**
-   * Gets the set of tags associated with the photo.
-   *
-   * @return the set of tags
-   */
-  public Set<Tag> getTags() {
-    return tags;
+  // Methods for managing people tags
+  public Set<String> getPeopleTags() {
+    return peopleTags;
   }
 
-  /**
-   * Adds a tag to the photo.
-   *
-   * @param tag the tag to add
-   * @throws IllegalStateException if the tag already exists
-   */
-  public void addTag(Tag tag) {
-    if (!tags.add(tag)) {
-      throw new IllegalStateException("'" + tag + "' tag already exists.");
+  public void addPersonTag(String person) {
+    peopleTags.add(person.toLowerCase());
+  }
+
+  public void removePersonTag(String person) {
+    peopleTags.remove(person.toLowerCase());
+  }
+  //clear all person tags
+    public void clearPeopleTags() {
+        peopleTags.clear();
     }
-  }
-
-  /**
-   * Checks if the photo has the specified tag.
-   *
-   * @param tag the tag to check
-   * @return true if the photo has the tag, false otherwise
-   */
-  public boolean hasTag(Tag tag) {
-    return tags.contains(tag);
-  }
-
-  /**
-   * Removes a tag from the photo.
-   *
-   * @param tag the tag to remove
-   */
-  public void removeTag(Tag tag) {
-    tags.remove(tag);
-  }
-
-  /**
-   * Checks if the photo has a tag of the specified type by name.
-   *
-   * @param name the name of the tag type
-   * @return true if the photo has a tag of the specified type, false otherwise
-   */
-  public boolean hasTagType(String name) {
-    for (Tag tag : tags) {
-      if (tag.getName().equalsIgnoreCase(name)) {
-        return true;
-      }
+  //has person tag
+    public boolean hasPersonTag(String person) {
+        return peopleTags.contains(person.toLowerCase());
     }
-    return false;
+
+  // Methods for managing location tag
+  public String getLocationTag() {
+    return locationTag;
   }
 
-  /**
-   * Checks if the photo has a tag of the specified type.
-   *
-   * @param tagType the tag type to check
-   * @return true if the photo has a tag of the specified type, false otherwise
-   */
-  public boolean hasTagType(TagType tagType) {
-    for (Tag tag : tags) {
-      if (tag.getName().equalsIgnoreCase(tagType.getName())) {
-        return true;
-      }
-    }
-    return false;
+  public void setLocationTag(String location) {
+    this.locationTag = location.toLowerCase();
   }
+
+  public void clearLocationTag() {
+    this.locationTag = null;
+  }
+  //has location tag
+  public boolean hasLocationTag() {
+    return locationTag != null;
+  }
+
+  //get all tags; return a pair of people and location tags
+  public Map<String, Set<String>> getAllTags() {
+      Map<String, Set<String>> allTags = new HashMap<>();
+      allTags.put("people", peopleTags);
+      allTags.put("location", locationTag != null ? Collections.singleton(locationTag) : Collections.emptySet());
+      return allTags;
+  }
+
 
   /**
    * Checks if this photo is equal to another object.

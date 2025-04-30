@@ -60,6 +60,7 @@ public class AlbumViewActivity extends AppCompatActivity {
 //            return insets;
 //        });
 
+
         /*GET ALBUM NAME FROM BUNDLE*/
         Bundle bundle = getIntent().getExtras();
         album_name = bundle.getString(Home.ALBUM_NAME);
@@ -74,7 +75,6 @@ public class AlbumViewActivity extends AppCompatActivity {
         setSupportActionBar(myToolbar);
         // Enable the Up button
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
-
 
         /*GET BUTTONS*/
         addPhotoButton = findViewById(R.id.addPhotoButton);
@@ -102,6 +102,20 @@ public class AlbumViewActivity extends AppCompatActivity {
             intent.setType("image/*"); // Only show images
             startActivityForResult(intent, REQUEST_IMAGE_GET); // Request code 1
         });
+
+        removePhotoButton.setOnClickListener(view -> {
+            int selectedPosition = photoListView.getCheckedItemPosition();
+            if (selectedPosition != ListView.INVALID_POSITION) {
+                Photo selectedPhoto = (Photo) photoListView.getItemAtPosition(selectedPosition);
+                this_album.removePhoto(selectedPhoto);
+                saveAlbumChanges(this, this_album);
+                System.out.println("New updated album list: " + getCurrentAlbums(this));
+                populatePhotoList();
+                statusLabel.setText("Photo removed from album: " + this_album.getName());
+            } else {
+                showError("Please select a photo to remove.");
+            }
+        });
     }
 
     public void populatePhotoList() {
@@ -112,6 +126,10 @@ public class AlbumViewActivity extends AppCompatActivity {
         photoListView = findViewById(R.id.photoListView);
 //        ArrayAdapter<Photo> photoListAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, this_album.getPhotos());
         PhotoAdapter photoListAdapter = new PhotoAdapter(this, this_album.getPhotos());
+        photoListView.setOnItemClickListener((parent, view, position, id) -> {
+            photoListView.setItemChecked(position, true);
+            statusLabel.setText("Selected photo at position: " + (position+1));
+        });
 
         //TODO: change to custom adapter; use new layout for album item
         photoListView.setAdapter(photoListAdapter);

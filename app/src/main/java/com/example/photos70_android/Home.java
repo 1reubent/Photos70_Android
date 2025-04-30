@@ -1,7 +1,9 @@
 package com.example.photos70_android;
 
 import static com.example.photos70_android.AlbumsManager.addAlbum;
+import static com.example.photos70_android.AlbumsManager.getCurrentAlbums;
 import static com.example.photos70_android.AlbumsManager.loadAlbums;
+import static com.example.photos70_android.AlbumsManager.saveAlbumChanges;
 import static com.example.photos70_android.AlbumsManager.saveAlbums;
 import static com.example.photos70_android.AlbumsManager.removeAlbum;
 
@@ -26,12 +28,13 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.example.photos70_android.model.Album;
+import com.example.photos70_android.model.Photo;
 
 import java.util.ArrayList;
 
 public class Home extends AppCompatActivity {
     // get listview from main activity (home)
-    private ListView listView;
+    private ListView albumListView;
 
     //get buttons from main activity (home)
     private Button createAlbumButton;
@@ -143,72 +146,47 @@ public class Home extends AppCompatActivity {
 
         /*Set up the Delete Album button logic*/
         deleteAlbumButton.setOnClickListener(v -> {
-            // Show a dialog to get the album name
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle("Delete Album");
-
-            // Dropdown (Spinner) for album names
-            final Spinner albumDropdown = new Spinner(this);
-            ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item,
-                albums.stream().map(Album::getName).toArray(String[]::new));
-//            need to pass String[]::new to convert the stream to an array of strings and not objects
-            albumDropdown.setAdapter(adapter);
-            builder.setView(albumDropdown);
-
-            // Set up dialog buttons
-            builder.setPositiveButton("Delete", (dialog, which) -> {
-                String albumName = albumDropdown.getSelectedItem().toString().trim();
-
-                //TODO: ask for confirmation?
-
-                //remove the album and save
+            int selectedPosition = albumListView.getCheckedItemPosition();
+            if (selectedPosition != ListView.INVALID_POSITION) {
+                String albumName;
+                try {
+                    albumName = ((Album)albumListView.getItemAtPosition(selectedPosition)).getName().trim();
+                } catch (NullPointerException e) {
+                    showError("No album selected.");
+                    return;
+                }
                 if(!removeAlbum(this, albumName)){
                     showError("Album not found.");
                     return;
                 }
-
                 //update status label
                 statusLabel.setText("Album deleted: " + albumName);
 
                 // Save albums and update UI
                 populateAlbumList();
-            });
-
-            builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
-
-            builder.show();
+            } else {
+                showError("Please select an album to delete.");
+            }
         });
 
         /*TODO: Set up the Rename Album button logic*/
 
         /*Set up the Open Album button logic*/
         openAlbumButton.setOnClickListener(v -> {
-            // Show a dialog to get the album name
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle("Open Album");
-
-            // Dropdown (Spinner) for album names
-            final Spinner albumDropdown = new Spinner(this);
-            ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item,
-                albums.stream().map(Album::getName).toArray(String[]::new));
-            albumDropdown.setAdapter(adapter);
-            builder.setView(albumDropdown);
-
-            // Set up dialog buttons
-            builder.setPositiveButton("Open", (dialog, which) -> {
+            int selectedPosition = albumListView.getCheckedItemPosition();
+            if (selectedPosition != ListView.INVALID_POSITION) {
                 String albumName;
                 try {
-                    albumName = albumDropdown.getSelectedItem().toString().trim();
+                    albumName = ((Album)albumListView.getItemAtPosition(selectedPosition)).getName().trim();
                 } catch (NullPointerException e) {
                     showError("No album selected.");
                     return;
                 }
                 // Open the selected album (start a new activity)
                 openAlbum(albumName);
-            });
-            builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
-
-            builder.show();
+            } else {
+                showError("Please select an album to open.");
+            }
 
         });
 
@@ -228,11 +206,19 @@ public class Home extends AppCompatActivity {
         startActivity(intent);
     }
     public void populateAlbumList() {
-        // Save the albums to internal storage
-        listView = findViewById(R.id.albumListView);
-        ArrayAdapter<Album> albumAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, albums);
-        //TODO: change to custom adapter; use new layout for album item
-        listView.setAdapter(albumAdapter);
+        albumListView = findViewById(R.id.albumListView);
+
+        // Set single choice mode
+        albumListView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+
+        AlbumAdapter albumAdapter = new AlbumAdapter(this, albums);
+
+        // Handle item clicks
+        albumListView.setOnItemClickListener((parent, view, position, id) -> {
+            albumListView.setItemChecked(position, true); // Highlight the selected item
+            statusLabel.setText("Selected album: " + albums.get(position).getName());
+        });
+        albumListView.setAdapter(albumAdapter);
     }
     private void showError(String message) {
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();

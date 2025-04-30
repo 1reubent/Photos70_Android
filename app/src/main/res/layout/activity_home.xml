@@ -33,7 +33,9 @@
             android:id="@+id/albumListView"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="2" />
+            android:layout_weight="2"
+            android:choiceMode="singleChoice"
+            android:listSelector="@drawable/photo_list_item_selector"/>
 
         <LinearLayout
             android:layout_width="0dp"
