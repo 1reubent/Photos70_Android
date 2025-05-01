@@ -18,6 +18,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
@@ -82,13 +83,13 @@ public class AlbumViewActivity extends AppCompatActivity {
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
 
         /*GET BUTTONS*/
+        photoCountLabel = findViewById(R.id.photoCountLabel);
         addPhotoButton = findViewById(R.id.addPhotoButton);
         removePhotoButton = findViewById(R.id.removePhotoButton);
         captionPhotoButton = findViewById(R.id.captionPhotoButton);
         displayPhotoButton = findViewById(R.id.displayPhotoButton);
         movePhotoButton = findViewById(R.id.movePhotoButton);
         statusLabel = findViewById(R.id.statusLabel);
-        photoCountLabel = findViewById(R.id.photoCountLabel);
 
         /*POPULATE PHOTO LIST*/
         populatePhotoList();
@@ -130,6 +131,51 @@ public class AlbumViewActivity extends AppCompatActivity {
                 showError("Please select a photo to display.");
             }
         });
+
+        //move photo
+        movePhotoButton.setOnClickListener(view -> {
+            int selectedPosition = photoListView.getCheckedItemPosition();
+            if (selectedPosition != ListView.INVALID_POSITION) {
+                Photo selectedPhoto = (Photo) photoListView.getItemAtPosition(selectedPosition);
+                movePhoto(selectedPhoto);
+            } else {
+                showError("Please select a photo to move.");
+            }
+        });
+    }
+
+    private void movePhoto(Photo selectedPhoto) {
+        // Get the list of albums
+        String[] albumNames = getCurrentAlbums(this).stream().map(Album::getName).toArray(String[]::new);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Select an album to this photo to")
+                .setItems(albumNames, (dialog, which) -> {
+                    String selectedAlbumName = albumNames[which];
+                    Album selectedAlbum = getAlbum(this, selectedAlbumName);
+                    //move the photo to the selected album
+                    if (selectedAlbum != null) {
+                        //check if the photo already exists in the selected album
+                        if (selectedAlbum.hasPhoto(selectedPhoto)) {
+                            showError("Photo already exists in the selected album.");
+                            return;
+                        }
+                        //remove the photo from the current album
+                        this_album.removePhoto(selectedPhoto);
+                        saveAlbumChanges(this, this_album);
+
+                        //add the photo to the selected album
+                        selectedAlbum.addPhoto(selectedPhoto);
+                        saveAlbumChanges(this, selectedAlbum);
+
+                        System.out.println("New updated album list: " + getCurrentAlbums(this));
+                        populatePhotoList();
+                        statusLabel.setText("Photo moved to album: " + selectedAlbum.getName());
+                    } else {
+                        showError("Selected album not found.");
+                    }
+
+                })
+                .show();
     }
 
     private void openPhoto(String photoPath) {
