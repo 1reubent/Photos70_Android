@@ -1,22 +1,18 @@
 package com.example.photos70_android;
 
-import static com.example.photos70_android.AlbumsManager.addAlbum;
-import static com.example.photos70_android.AlbumsManager.getCurrentAlbums;
-import static com.example.photos70_android.AlbumsManager.loadAlbums;
-import static com.example.photos70_android.AlbumsManager.saveAlbumChanges;
-import static com.example.photos70_android.AlbumsManager.saveAlbums;
-import static com.example.photos70_android.AlbumsManager.removeAlbum;
+import static com.example.photos70_android.DataManager.addAlbum;
+import static com.example.photos70_android.DataManager.loadAlbums;
+import static com.example.photos70_android.DataManager.saveAlbums;
+import static com.example.photos70_android.DataManager.removeAlbum;
 
 
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -28,7 +24,6 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.example.photos70_android.model.Album;
-import com.example.photos70_android.model.Photo;
 
 import java.util.ArrayList;
 
@@ -37,6 +32,7 @@ public class Home extends AppCompatActivity {
     private ListView albumListView;
 
     //get buttons from main activity (home)
+    private Button searchPhotosButton;
     private Button createAlbumButton;
     private Button deleteAlbumButton;
     private Button renameAlbumButton;
@@ -73,11 +69,6 @@ public class Home extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 //        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_home);
-//        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-//            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-//            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-//            return insets;
-//        });
 
 //        //DEBUG: save test albums. only need to uncomment this once to save the albums to the device
 //        ArrayList<Album> testAlbums = new ArrayList<>();
@@ -90,6 +81,7 @@ public class Home extends AppCompatActivity {
 
 
         /*GET BUTTONS*/
+        searchPhotosButton = findViewById(R.id.searchPhotosButton);
         createAlbumButton = findViewById(R.id.createAlbumButton);
         deleteAlbumButton = findViewById(R.id.deleteAlbumButton);
         renameAlbumButton = findViewById(R.id.renameAlbumButton);
@@ -106,6 +98,13 @@ public class Home extends AppCompatActivity {
         System.out.println("Loaded albums from Home.java creation: " + albums);
         /*POPULATE LISTVIEW*/
         populateAlbumList();
+
+        searchPhotosButton.setOnClickListener(v -> {
+            // Open the search photos activity
+            Intent intent = new Intent(this, SearchPhotosActivity.class);
+            startActivity(intent);
+        });
+
 
         /*Set up the Create Album button logic*/
         createAlbumButton.setOnClickListener(v -> {
@@ -194,7 +193,6 @@ public class Home extends AppCompatActivity {
 
         });
 
-        /*TODO: Set up the Search Photos button logic*/
 
     }
 

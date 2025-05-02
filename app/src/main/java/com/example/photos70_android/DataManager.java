@@ -4,6 +4,7 @@ import android.content.Context;
 import android.widget.Toast;
 
 import com.example.photos70_android.model.Album;
+import com.example.photos70_android.model.Photo;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -13,10 +14,24 @@ import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.stream.IntStream;
 
-public class AlbumsManager {
+public class DataManager {
     private static final String ALBUMS_FILE = "albums.dat";
 
     private static ArrayList<Album> current_albums;
+
+    public static String getAlbumNamesOfPhoto(Photo photo) {
+        StringBuilder albumNames = new StringBuilder();
+        for (Album album : current_albums) {
+            if (album.getPhotos().contains(photo)) {
+                albumNames.append(album.getName()).append(", ");
+            }
+        }
+        // Remove the last comma and space
+        if (albumNames.length() > 0) {
+            albumNames.setLength(albumNames.length() - 2);
+        }
+        return albumNames.toString();
+    }
 
     /**
      * Retrieves the current albums list.

@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
+import static com.example.photos70_android.DataManager.getAlbumNamesOfPhoto;
 
 import androidx.annotation.NonNull;
 
@@ -20,17 +21,24 @@ public class PhotoAdapter extends ArrayAdapter<Photo> {
     private final Context context;
     private final List<Photo> photos;
 
-    public PhotoAdapter(Context context, List<Photo> photos) {
-        super(context, R.layout.photo_item, photos);
+    private final boolean forSearch;
+    private static int layout;
+
+    public PhotoAdapter(Context context, List<Photo> photos, boolean forSearch) {
+        super(context, forSearch ? R.layout.search_photo_item : R.layout.photo_item, photos);
+        //use the search_photo_item layout if forSearch is true.
+        // this means it's being used in the search photos activity
+        layout = forSearch ? R.layout.search_photo_item : R.layout.photo_item;
         this.context = context;
         this.photos = photos;
+        this.forSearch = forSearch;
     }
 
     @NonNull
     @Override
     public View getView(int position, View convertView, @NonNull ViewGroup parent) {
         if (convertView == null) {
-            convertView = LayoutInflater.from(context).inflate(R.layout.photo_item, parent, false);
+            convertView = LayoutInflater.from(context).inflate(layout, parent, false);
         }
 
         Photo photo = photos.get(position);
@@ -41,7 +49,11 @@ public class PhotoAdapter extends ArrayAdapter<Photo> {
 
         // Set caption
         TextView caption = convertView.findViewById(R.id.photoCaption);
-        caption.setText(photo.getCaption().isEmpty() ? "No Caption" : photo.getCaption());
+        if(forSearch){
+            caption.setText(photo.getName() + " (Albums: " + getAlbumNamesOfPhoto(photo) + ")");
+        }else{
+            caption.setText(photo.getName());
+        }
 
         return convertView;
     }
