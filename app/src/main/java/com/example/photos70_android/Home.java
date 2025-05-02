@@ -1,6 +1,7 @@
 package com.example.photos70_android;
 
 import static com.example.photos70_android.DataManager.addAlbum;
+import static com.example.photos70_android.DataManager.getAlbum;
 import static com.example.photos70_android.DataManager.loadAlbums;
 import static com.example.photos70_android.DataManager.saveAlbums;
 import static com.example.photos70_android.DataManager.removeAlbum;
@@ -99,6 +100,7 @@ public class Home extends AppCompatActivity {
         /*POPULATE LISTVIEW*/
         populateAlbumList();
 
+        /*Set up the Search Photos button logic*/
         searchPhotosButton.setOnClickListener(v -> {
             // Open the search photos activity
             Intent intent = new Intent(this, SearchPhotosActivity.class);
@@ -126,20 +128,15 @@ public class Home extends AppCompatActivity {
                     showError("Album name cannot be empty.");
                     return;
                 }
-
                 // Create and add the new album
                 if (!addAlbum(this, new Album(albumName))) {
                     showError("An album with this name already exists.");
                     return;
                 }
-
                 // Save albums and update UI
                 populateAlbumList();
-
                 //update status label
                 statusLabel.setText("Album created: " + albumName);
-
-
             });
 
             builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
@@ -176,9 +173,11 @@ public class Home extends AppCompatActivity {
         renameAlbumButton.setOnClickListener(v -> {
             int selectedPosition = albumListView.getCheckedItemPosition();
             if (selectedPosition != ListView.INVALID_POSITION) {
-                String albumName;
+                String currentAlbumName;
                 try {
-                    albumName = ((Album)albumListView.getItemAtPosition(selectedPosition)).getName().trim();
+                    currentAlbumName = ((Album)albumListView.getItemAtPosition(selectedPosition)).getName().trim();
+                    //print
+                    System.out.println("Selected album name: " + currentAlbumName);
                 } catch (NullPointerException e) {
                     showError("No album selected.");
                     return;
@@ -186,13 +185,32 @@ public class Home extends AppCompatActivity {
                 // Show a dialog to get the new album name
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setTitle("Rename Album");
-
                 // Input field for album name
                 final EditText input = new EditText(this);
-                input.setHint("Enter album name");
+                input.setHint("Enter new album name");
                 builder.setView(input);
+                // Set up dialog buttons
+                builder.setPositiveButton("Rename", (dialog, which) -> {
+                    String newAlbumName = input.getText().toString().trim();
+
+                    // Validate album name
+                    if (newAlbumName.isEmpty()) {
+                        showError("New album name cannot be empty.");
+                        return;
+                    }
+                    // Rename the album
+                    Album this_album = getAlbum(this, currentAlbumName);
+                    this_album.setName(newAlbumName);
+                    // Save albums and update UI
+                    populateAlbumList();
+                    //update status label
+                    statusLabel.setText("Album renamed: " + newAlbumName);
+                });
+
+                builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
+                builder.show();
                 }
-            }
+            });
 
         /*Set up the Open Album button logic*/
         openAlbumButton.setOnClickListener(v -> {

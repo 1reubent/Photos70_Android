@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 import static com.example.photos70_android.DataManager.getAlbum;
+import static com.example.photos70_android.DataManager.getAlbumNamesOfPhoto;
 import static com.example.photos70_android.DataManager.saveAlbumChanges;
 
 
@@ -32,6 +33,8 @@ public class DisplayPhotoActivity extends AppCompatActivity {
     private Button prevPhotoButton;
     private Button nextPhotoButton;
     private TextView tagsTextView;
+
+    private TextView albumsContainingPhotoTextView;
     private ImageView photoImageView;
     private Album this_album;
     private Photo currentPhoto;
@@ -55,13 +58,7 @@ public class DisplayPhotoActivity extends AppCompatActivity {
         nextPhotoButton = findViewById(R.id.nextPhotoButton);
         tagsTextView = findViewById(R.id.tagsTextView);
         photoImageView = findViewById(R.id.photoImageView);
-
-        /*INITIALIZE THE TOOLBAR*/
-        Toolbar toolbar = findViewById(R.id.my_toolbar);
-        toolbar.setTitle("Display Photo");
-        setSupportActionBar(toolbar);
-        // Enable the Back button
-        Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
+        albumsContainingPhotoTextView = findViewById(R.id.albumsContainingPhotoTextView);
 
         /*GET ALBUM AND STARTING PHOTO*/
         // Get the album name passed from the previous activity
@@ -73,6 +70,14 @@ public class DisplayPhotoActivity extends AppCompatActivity {
         //print this_album and currentPhoto
         System.out.println("Album: " + this_album.getName());
         System.out.println("Photo: " + currentPhoto.getPath());
+
+        /*INITIALIZE THE TOOLBAR*/
+        Toolbar toolbar = findViewById(R.id.my_toolbar);
+        toolbar.setTitle("Displaying " + currentPhoto.getName());
+        setSupportActionBar(toolbar);
+        // Enable the Back button
+        Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
+
 
         /*INITIALIZE PHOTOS FIELDS*/
         initializePhotos(photoPath);
@@ -133,10 +138,14 @@ public class DisplayPhotoActivity extends AppCompatActivity {
         currentPhoto = photos.get(currentPhotoIndex);
         photoImageView.setImageURI(Uri.parse(currentPhoto.getPath()));
         //may cause problems
-        updateTagsDisplay();
+        updatePhotoDetailsDisplay();
     }
 
-    private void updateTagsDisplay() {
+    private void updatePhotoDetailsDisplay() {
+        //set albums containing photo text using getAlbumNamesOfPhoto of DataManager
+        String albumNames = getAlbumNamesOfPhoto(currentPhoto);
+        albumsContainingPhotoTextView.setText("In albums: " + albumNames);
+
         //save updated photo to the album
         saveAlbumChanges(this, this_album);
 
@@ -183,7 +192,7 @@ public class DisplayPhotoActivity extends AppCompatActivity {
                 } else if (tagType.equalsIgnoreCase("Location")) {
                     currentPhoto.addLocationTag(tagValue);
                 }
-                updateTagsDisplay();
+                updatePhotoDetailsDisplay();
                 showMessage("Tag added");
             } else {
                 showMessage("Tag cannot be empty");
@@ -228,7 +237,7 @@ public class DisplayPhotoActivity extends AppCompatActivity {
                 currentPhoto.clearLocationTag();
                 showMessage("Location tag deleted");
             }
-            updateTagsDisplay();
+            updatePhotoDetailsDisplay();
         });
         builder.show();
     }

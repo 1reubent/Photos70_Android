@@ -23,6 +23,13 @@
         android:layout_weight="1"
         android:contentDescription="Displayed photo"
         android:scaleType="fitCenter" />
+    <TextView
+            android:id="@+id/albumsContainingPhotoTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="8dp"
+            android:text="Albums containing photo: None"
+            android:textSize="16sp" />
 
     <TextView
         android:id="@+id/tagsTextView"

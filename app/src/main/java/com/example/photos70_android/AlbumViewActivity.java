@@ -99,6 +99,7 @@ public class AlbumViewActivity extends AppCompatActivity {
          *  - display photo activity should implement the slideshow feature
          *  - make it so that you select a photo FIRST and then click the button*/
 
+        /*Set up the Add Photo button logic*/
         addPhotoButton.setOnClickListener(view -> {
             // Create an intent to open the gallery
             Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
@@ -107,6 +108,7 @@ public class AlbumViewActivity extends AppCompatActivity {
             startActivityForResult(intent, REQUEST_IMAGE_GET); // Request code 1
         });
 
+        /*Set up the Remove Photo button logic*/
         removePhotoButton.setOnClickListener(view -> {
             int selectedPosition = photoListView.getCheckedItemPosition();
             if (selectedPosition != ListView.INVALID_POSITION) {
@@ -120,8 +122,8 @@ public class AlbumViewActivity extends AppCompatActivity {
                 showError("Please select a photo to remove.");
             }
         });
-        //display photo
 
+        /*Set up the Display Photo button logic*/
         displayPhotoButton.setOnClickListener(view -> {
             int selectedPosition = photoListView.getCheckedItemPosition();
             if (selectedPosition != ListView.INVALID_POSITION) {
@@ -132,7 +134,7 @@ public class AlbumViewActivity extends AppCompatActivity {
             }
         });
 
-        //move photo
+        /*Set up the Move Photo button logic*/
         movePhotoButton.setOnClickListener(view -> {
             int selectedPosition = photoListView.getCheckedItemPosition();
             if (selectedPosition != ListView.INVALID_POSITION) {
