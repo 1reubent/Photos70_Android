@@ -4,14 +4,13 @@ package com.example.photos70_android;
 import android.database.Cursor;
 import android.provider.MediaStore;
 
-import static com.example.photos70_android.AlbumsManager.getAlbum;
-import static com.example.photos70_android.AlbumsManager.getCurrentAlbums;
-import static com.example.photos70_android.AlbumsManager.saveAlbumChanges;
+import static com.example.photos70_android.DataManager.getAlbum;
+import static com.example.photos70_android.DataManager.getCurrentAlbums;
+import static com.example.photos70_android.DataManager.saveAlbumChanges;
 
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -65,6 +64,7 @@ public class AlbumViewActivity extends AppCompatActivity {
         if (savedInstanceState != null) {
             album_name = savedInstanceState.getString(Home.ALBUM_NAME);
         } else {
+            //if coming from Home activity, get the album name from the intent
             Bundle bundle = getIntent().getExtras();
             if (bundle != null) {
                 album_name = bundle.getString(Home.ALBUM_NAME);
@@ -197,7 +197,7 @@ public class AlbumViewActivity extends AppCompatActivity {
 
         photoListView = findViewById(R.id.photoListView);
 //        ArrayAdapter<Photo> photoListAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, this_album.getPhotos());
-        PhotoAdapter photoListAdapter = new PhotoAdapter(this, this_album.getPhotos());
+        PhotoAdapter photoListAdapter = new PhotoAdapter(this, this_album.getPhotos(), false);
         photoListView.setOnItemClickListener((parent, view, position, id) -> {
             photoListView.setItemChecked(position, true);
             statusLabel.setText("Selected photo at position: " + (position+1));
@@ -212,7 +212,7 @@ public class AlbumViewActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        //add photo:
+        //add photo result:
         if (requestCode == REQUEST_IMAGE_GET) {
             System.out.println("Result Code: " + resultCode);
             System.out.println("Data: " + data);
@@ -222,6 +222,7 @@ public class AlbumViewActivity extends AppCompatActivity {
                 System.out.println("URI: " + selectedImageUri);
                 System.out.println("scheme: " + selectedImageUri.getScheme());
                 if (selectedImageUri != null) {
+                    // Get the real file path from the URI (move photo to the app's files directory)
                     String filePath = getRealPathFromURI(selectedImageUri);
                     System.out.println("filePath: " + filePath);
                     if (filePath != null) {
@@ -231,6 +232,7 @@ public class AlbumViewActivity extends AppCompatActivity {
                             showError("Photo already exists in the album.");
                             return;
                         }
+                        //add the photo to the album
                         this_album.addPhoto(newPhoto);
                         saveAlbumChanges(this, this_album);
                         System.out.println("New updated album list: " + getCurrentAlbums(this));

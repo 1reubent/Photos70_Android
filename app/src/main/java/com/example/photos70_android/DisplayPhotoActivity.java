@@ -11,7 +11,8 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
-import static com.example.photos70_android.AlbumsManager.getAlbum;
+import static com.example.photos70_android.DataManager.getAlbum;
+import static com.example.photos70_android.DataManager.saveAlbumChanges;
 
 
 import com.example.photos70_android.model.Album;
@@ -130,14 +131,14 @@ public class DisplayPhotoActivity extends AppCompatActivity {
 
     private void displayPhoto() {
         currentPhoto = photos.get(currentPhotoIndex);
-        photoImageView.setImageURI(Uri.parse(currentPhoto.getPath())); // Assuming Photo has a getUri() method
+        photoImageView.setImageURI(Uri.parse(currentPhoto.getPath()));
         //may cause problems
         updateTagsDisplay();
     }
 
     private void updateTagsDisplay() {
         //save updated photo to the album
-        AlbumsManager.saveAlbumChanges(this, this_album);
+        saveAlbumChanges(this, this_album);
 
         // Assuming Photo has a method to get tags as a String
         Map<String, Set<String>> tags = currentPhoto.getAllTags();
@@ -201,7 +202,7 @@ public class DisplayPhotoActivity extends AppCompatActivity {
             showMessage("No tags to delete");
             return;
         }
-
+        // Combine all tags into a single list for display
         List<String> allTags = new ArrayList<>();
         if (peopleTags != null) {
             for (String tag : peopleTags) {

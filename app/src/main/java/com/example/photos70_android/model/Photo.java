@@ -102,6 +102,15 @@ public class Photo implements Serializable {
     return dateTaken;
   }
 
+  //has tag
+    public boolean hasTag(String tagType, String tagValue) {
+        if (tagType.equalsIgnoreCase("people")) {
+        return peopleTags.contains(tagValue.toLowerCase());
+        } else if (tagType.equalsIgnoreCase("location")) {
+        return locationTag != null && locationTag.equalsIgnoreCase(tagValue);
+        }
+        return false;
+    }
   // Methods for managing people tags
   public Set<String> getPeopleTags() {
     return peopleTags;

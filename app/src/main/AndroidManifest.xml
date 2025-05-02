@@ -16,9 +16,13 @@
         android:theme="@style/Theme.Photos70_Android"
         tools:targetApi="31">
         <activity
-            android:name=".DisplayPhotoActivity"
+            android:name=".SearchPhotosActivity"
             android:exported="false"
             android:parentActivityName=".AlbumViewActivity"/>
+        <activity
+            android:name=".DisplayPhotoActivity"
+            android:exported="false"
+            android:parentActivityName=".AlbumViewActivity" />
         <activity
             android:name=".AlbumViewActivity"
             android:exported="false"
