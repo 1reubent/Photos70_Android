@@ -173,7 +173,27 @@ public class Home extends AppCompatActivity {
             }
         });
 
-        /*TODO: Set up the Rename Album button logic*/
+        /*Set up the Rename Album button logic*/
+        renameAlbumButton.setOnClickListener(v -> {
+            int selectedPosition = albumListView.getCheckedItemPosition();
+            if (selectedPosition != ListView.INVALID_POSITION) {
+                String albumName;
+                try {
+                    albumName = ((Album)albumListView.getItemAtPosition(selectedPosition)).getName().trim();
+                } catch (NullPointerException e) {
+                    showError("No album selected.");
+                    return;
+                }
+                // Show a dialog to get the new album name
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle("Rename Album");
+
+                // Input field for album name
+                final EditText input = new EditText(this);
+                input.setHint("Enter album name");
+                builder.setView(input);
+                }
+            }
 
         /*Set up the Open Album button logic*/
         openAlbumButton.setOnClickListener(v -> {
