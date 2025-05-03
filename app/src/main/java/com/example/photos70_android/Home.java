@@ -77,7 +77,7 @@ public class Home extends AppCompatActivity {
 //        testAlbums.add(new Album("Test Album 2"));
 //        testAlbums.add(new Album("Test Album 3"));
 //        saveAlbums(testAlbums, this);
-        checkPermissions();
+//        checkPermissions();
 
 
 

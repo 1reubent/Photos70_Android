@@ -3,6 +3,8 @@ package com.example.photos70_android;
 import static com.example.photos70_android.DataManager.getCurrentAlbums;
 
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Pair;
 import android.view.View;
 import android.widget.AdapterView;
@@ -30,10 +32,9 @@ public class SearchPhotosActivity extends AppCompatActivity {
     private Spinner tagTypeSpinner, secondTagTypeSpinner;
     private AutoCompleteTextView tagValueInput, secondTagValueInput;
     private RadioGroup searchTypeGroup;
-    private Button searchButton;
     private ListView searchResultsListView;
 
-    private List<Photo> allPhotos; // Assume this is loaded from all albums
+    private List<Photo> allPhotos;
     private List<Pair<String,String>> allTags; // For auto-completion
 
     @Override
@@ -46,7 +47,6 @@ public class SearchPhotosActivity extends AppCompatActivity {
         secondTagTypeSpinner = findViewById(R.id.secondTagTypeSpinner);
         secondTagValueInput = findViewById(R.id.secondTagValueInput);
         searchTypeGroup = findViewById(R.id.searchTypeGroup);
-        searchButton = findViewById(R.id.searchButton);
         searchResultsListView = findViewById(R.id.searchResultsListView);
 
         /*INITIALIZE THE TOOLBAR*/
@@ -66,40 +66,46 @@ public class SearchPhotosActivity extends AppCompatActivity {
         ArrayAdapter<String> tagTypeAdapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_item, new String[]{"Location", "People"});
         tagTypeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        /*INIT FIRST TAG*/
         tagTypeSpinner.setAdapter(tagTypeAdapter);
-        tagTypeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            //update tag suggestions when a tag type is selected
+        // Add TextWatcher to dynamically update search results
+        tagValueInput.addTextChangedListener(new TextWatcher() {
             @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                // Set up auto-completion
-                String selectedTagType = tagTypeSpinner.getSelectedItem().toString();
-                updateFirstTagSuggestions(selectedTagType);
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                // Do nothing
             }
 
             @Override
-            public void onNothingSelected(AdapterView<?> parent) {
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                performSearch();
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
                 // Do nothing
             }
         });
 
+        /*INIT SECOND TAG*/
         secondTagTypeSpinner.setAdapter(tagTypeAdapter);
-        secondTagTypeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            //update tag suggestions when a tag type is selected
+        // Add TextWatcher to dynamically update search results
+        secondTagValueInput.addTextChangedListener(new TextWatcher() {
             @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                // Set up auto-completion
-                String selectedTagType = secondTagTypeSpinner.getSelectedItem().toString();
-                updateSecondTagSuggestions(selectedTagType);
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                // Do nothing
             }
 
             @Override
-            public void onNothingSelected(AdapterView<?> parent) {
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                performSearch();
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
                 // Do nothing
             }
         });
-
-        // Initialize RecyclerView
-//        searchResultsListView.setLayoutManager(new LinearLayoutManager(this));
 
         // Set default selection to single tag search
         searchTypeGroup.check(R.id.singleTagSearch);
@@ -109,40 +115,16 @@ public class SearchPhotosActivity extends AppCompatActivity {
             if (checkedId == R.id.singleTagSearch) {
                 secondTagTypeSpinner.setVisibility(View.GONE);
                 secondTagValueInput.setVisibility(View.GONE);
+                performSearch();
 
             } else {
                 secondTagTypeSpinner.setVisibility(View.VISIBLE);
                 secondTagValueInput.setVisibility(View.VISIBLE);
+                performSearch();
             }
         });
 
-        //TODO: Handle search button click
-        searchButton.setOnClickListener(v -> performSearch());
-    }
 
-    private void updateFirstTagSuggestions(String tagType) {
-        // Update the auto-complete suggestions for first tag input based on the selected tag type
-        ArrayAdapter<String> autoCompleteAdapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_dropdown_item_1line,
-                allTags.stream()
-                        .filter(tag -> tag.first.equalsIgnoreCase(tagType))
-                        .map(tag -> tag.second)
-                        .distinct()
-                        .collect(Collectors.toList()));
-        tagValueInput.setAdapter(autoCompleteAdapter);
-        tagValueInput.setThreshold(1);
-    }
-    private void updateSecondTagSuggestions(String tagType) {
-        // Update the auto-complete suggestions for second tag input based on the selected tag type
-        ArrayAdapter<String> autoCompleteAdapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_dropdown_item_1line,
-                allTags.stream()
-                        .filter(tag -> tag.first.equalsIgnoreCase(tagType))
-                        .map(tag -> tag.second)
-                        .distinct()
-                        .collect(Collectors.toList()));
-        secondTagValueInput.setAdapter(autoCompleteAdapter);
-        secondTagValueInput.setThreshold(1);
     }
     private List<Photo> loadAllPhotos() {
         // Load photos from all albums
@@ -176,10 +158,6 @@ public class SearchPhotosActivity extends AppCompatActivity {
         String tagType2 = secondTagTypeSpinner.getSelectedItem().toString();
         String tagValue2 = secondTagValueInput.getText().toString().trim();
 
-        if (tagValue1.isEmpty()) {
-            Toast.makeText(this, "Please enter a tag value.", Toast.LENGTH_SHORT).show();
-            return;
-        }
 
         List<Photo> results = new ArrayList<>();
         int selectedSearchType = searchTypeGroup.getCheckedRadioButtonId();
@@ -187,40 +165,36 @@ public class SearchPhotosActivity extends AppCompatActivity {
         if (selectedSearchType == R.id.singleTagSearch) {
             results = searchBySingleTag(tagType, tagValue1);
         } else if (selectedSearchType == R.id.andSearch) {
-            if (tagValue2.isEmpty()) {
-                Toast.makeText(this, "Please enter the second tag value.", Toast.LENGTH_SHORT).show();
-                return;
-            }
             results = searchByConjunction(tagType, tagType2 , tagValue1, tagValue2);
         } else if (selectedSearchType == R.id.orSearch) {
-            if (tagValue2.isEmpty()) {
-                Toast.makeText(this, "Please enter the second tag value.", Toast.LENGTH_SHORT).show();
-                return;
-            }
             results = searchByDisjunction(tagType, tagType2, tagValue1, tagValue2);
         }
 
+        //print results
+        System.out.println("Search Results: " + results);
         // Update RecyclerView with results
         PhotoAdapter searchResultsAdapter = new PhotoAdapter(this, results, true);
-//        SearchResultsAdapter searchResultsAdapter = new SearchResultsAdapter(results);
         searchResultsListView.setAdapter(searchResultsAdapter);
     }
 
     private List<Photo> searchBySingleTag(String tagType, String tagValue) {
         return allPhotos.stream()
-                .filter(photo -> photo.hasTag(tagType, tagValue))
+                .filter(photo -> photo.hasTagPrefix(tagType, tagValue))
+                .distinct()
                 .collect(Collectors.toList());
     }
 
     private List<Photo> searchByConjunction(String tagType, String tagType2, String tagValue1, String tagValue2) {
         return allPhotos.stream()
-                .filter(photo -> photo.hasTag(tagType, tagValue1) && photo.hasTag(tagType2, tagValue2))
+                .filter(photo -> photo.hasTagPrefix(tagType, tagValue1) && photo.hasTagPrefix(tagType2, tagValue2))
+                .distinct()
                 .collect(Collectors.toList());
     }
 
     private List<Photo> searchByDisjunction(String tagType, String tagType2, String tagValue1, String tagValue2) {
         return allPhotos.stream()
-                .filter(photo -> photo.hasTag(tagType, tagValue1) || photo.hasTag(tagType2, tagValue2))
+                .filter(photo -> photo.hasTagPrefix(tagType, tagValue1) || photo.hasTagPrefix(tagType2, tagValue2))
+                .distinct()
                 .collect(Collectors.toList());
     }
 }

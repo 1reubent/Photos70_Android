@@ -144,7 +144,7 @@ public class DisplayPhotoActivity extends AppCompatActivity {
     private void updatePhotoDetailsDisplay() {
         //set albums containing photo text using getAlbumNamesOfPhoto of DataManager
         String albumNames = getAlbumNamesOfPhoto(currentPhoto);
-        albumsContainingPhotoTextView.setText("In albums: " + albumNames);
+        albumsContainingPhotoTextView.setText("Albums: " + albumNames);
 
         //save updated photo to the album
         saveAlbumChanges(this, this_album);
